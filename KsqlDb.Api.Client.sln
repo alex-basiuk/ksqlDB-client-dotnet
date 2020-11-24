@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3936BFBF-44AE-48B5-BFCC-845F13D27687}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{92692673-C193-4B37-B4E0-FFBF3E322F87}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{0A4F6815-98F9-4B8A-85DD-D7D3D0573237}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{CF7F11CF-51D6-43BD-8CA1-BA7171877E2C}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KsqlDb.Client", "src\KsqlDb.Client\KsqlDb.Client.csproj", "{B78F6444-3E70-493F-A6B3-57B8821FBA35}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KsqlDb.Client.UnitTests", "test\KsqlDb.Client.UnitTests\KsqlDb.Client.UnitTests.csproj", "{023B051F-0D0C-45B7-9AD7-9B735CC0E71B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KsqlDb.Client.IntegrationTests", "test\KsqlDb.Client.IntegrationTests\KsqlDb.Client.IntegrationTests.csproj", "{220D172C-ECC5-46AA-8B18-C3B5920E2046}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B78F6444-3E70-493F-A6B3-57B8821FBA35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B78F6444-3E70-493F-A6B3-57B8821FBA35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B78F6444-3E70-493F-A6B3-57B8821FBA35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B78F6444-3E70-493F-A6B3-57B8821FBA35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{023B051F-0D0C-45B7-9AD7-9B735CC0E71B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{023B051F-0D0C-45B7-9AD7-9B735CC0E71B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{023B051F-0D0C-45B7-9AD7-9B735CC0E71B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{023B051F-0D0C-45B7-9AD7-9B735CC0E71B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{220D172C-ECC5-46AA-8B18-C3B5920E2046}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{220D172C-ECC5-46AA-8B18-C3B5920E2046}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{220D172C-ECC5-46AA-8B18-C3B5920E2046}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{220D172C-ECC5-46AA-8B18-C3B5920E2046}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B78F6444-3E70-493F-A6B3-57B8821FBA35} = {3936BFBF-44AE-48B5-BFCC-845F13D27687}
+		{023B051F-0D0C-45B7-9AD7-9B735CC0E71B} = {92692673-C193-4B37-B4E0-FFBF3E322F87}
+		{220D172C-ECC5-46AA-8B18-C3B5920E2046} = {92692673-C193-4B37-B4E0-FFBF3E322F87}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B8A1895E-BE6E-452C-B065-68C24490C0DE}
+	EndGlobalSection
+EndGlobal
