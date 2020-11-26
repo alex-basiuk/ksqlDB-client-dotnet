@@ -10,21 +10,25 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        dotnet: [ '3.1.x', '5.0.x' ]
-    name: Dotnet ${{ matrix.dotnet }} build
+    name: Dotnet build
 
     steps:
     - uses: actions/checkout@v2
     - name: Setup dotnet
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ matrix.dotnet }}
+        dotnet-version: '5.0.x'
     - name: Install dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
+    - name: Test .NET 5.0
+      run: dotnet test -f net5.0 --no-restore --no-build --verbosity normal
+    - name: Test .NET Core 3.1
+      run: dotnet test -f netcoreapp3.1 --no-restore --no-build --verbosity normal
