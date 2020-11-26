@@ -29,6 +29,6 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Test .NET 5.0
-      run: dotnet test -f net5.0 --no-restore --no-build --verbosity normal
+      run: dotnet test -f net5.0 --configuration Release --no-restore --no-build --verbosity normal
     - name: Test .NET Core 3.1
-      run: dotnet test -f netcoreapp3.1 --no-restore --no-build --verbosity normal
+      run: dotnet test -f netcoreapp3.1 --configuration Release --no-restore --no-build --verbosity normal
