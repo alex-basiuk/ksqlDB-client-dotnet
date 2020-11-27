@@ -1,4 +1,4 @@
-name: .NET
+name: CI workflow
 
 on:
   push:
@@ -8,27 +8,99 @@ on:
 
 jobs:
   build:
+    name: Build
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+      - name: Publish .NET 5.0 Windows
+        run: dotnet publish -o publish/windows-net50 -r win10-x64 -f net5.0 --configuration Release --no-restore --verbosity normal
+      - name: Publish .NET Core 3.1 Windows
+        run: dotnet publish -o publish/windows-netcore31 -r win10-x64 -f netcoreapp3.1 --configuration Release --no-restore --verbosity normal
+      - name: Publish .NET 5.0 Linux
+        run: dotnet publish -o publish/linux-net50 -r linux-x64 -f net5.0 --configuration Release --no-restore --verbosity normal
+      - name: Publish .NET Core 3.1 Linux
+        run: dotnet publish -o publish/linux-netcore31 -r linux-x64 -f netcoreapp3.1 --configuration Release --no-restore --verbosity normal
+      - name: Publish binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: publish
+          path: publish/
 
+  unit-tests:
+    name: Unit tests
+    needs: build
     runs-on: ubuntu-latest
     env:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-    name: Dotnet build
-
+        include:
+          - os: ubuntu-latest
+            dotnet: '3.1.x'
+            dir: 'linux-netcore31'
+          - os: ubuntu-latest
+            dotnet: '5.0.x'
+            dir: 'linux-net50'
+          - os: windows-latest
+            dotnet: '3.1.x'
+            dir: 'windows-netcore31'
+          - os: windows-latest
+            dotnet: '5.0.x'
+            dir: 'windows-net50'
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '5.0.x'
-    - name: Install dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    - name: Test .NET 5.0
-      run: dotnet test -f net5.0 --configuration Release --no-restore --no-build --verbosity normal
-    - name: Test .NET Core 3.1
-      run: dotnet test -f netcoreapp3.1 --configuration Release --no-restore --no-build --verbosity normal
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+      - name: Download binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: publish
+      - name: Run test
+        run: dotnet test ${{ matrix.dir }}/KsqlDb.Client.UnitTests.dll
+
+  integration-tests:
+    name: Unit tests on Windows
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            dotnet: '3.1.x'
+            dir: 'linux-netcore31'
+          - os: ubuntu-latest
+            dotnet: '5.0.x'
+            dir: 'linux-net50'
+          - os: windows-latest
+            dotnet: '3.1.x'
+            dir: 'windows-netcore31'
+          - os: windows-latest
+            dotnet: '5.0.x'
+            dir: 'windows-net50'
+    steps:
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+      - name: Download binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: publish
+      - name: Run test
+        run: dotnet test ${{ matrix.dir }}/KsqlDb.Client.IntegrationTests.dll
