@@ -124,6 +124,8 @@ jobs:
           name: docker-compose
       - name: Start ksqlDB in docker
         run: docker-compose up -d --scale additional-ksqldb-server=0
+      - name: Check containers
+        run: docker ps -a
       - name: Wait until ksqlDB is up and running
         uses: nev7n/wait_for_response@v1
         with:
