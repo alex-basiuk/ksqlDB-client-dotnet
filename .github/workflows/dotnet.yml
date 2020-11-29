@@ -124,8 +124,12 @@ jobs:
           name: docker-compose
       - name: Start ksqlDB in docker
         run: docker-compose up -d --scale additional-ksqldb-server=0
-      - name: Check containers
-        run: docker ps -a
+      - name: Sleep for 60 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '60s'
+      - name: Check ksqldb logs
+        run: docker-compose logs primary-ksqldb-server
       - name: Wait until ksqlDB is up and running
         uses: nev7n/wait_for_response@v1
         with:
