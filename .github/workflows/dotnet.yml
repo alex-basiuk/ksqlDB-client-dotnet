@@ -51,6 +51,13 @@ jobs:
         with:
           name: linux-netcore31
           path: publish/linux-netcore31/
+      - name: Upload ksqlDB docker files
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-compose
+          path: |
+            test/docker-compose.yml
+            test/.env
 
   unit-tests:
     name: Unit tests
@@ -86,8 +93,8 @@ jobs:
       - name: Run test
         run: dotnet test KsqlDb.Client.UnitTests.dll
 
-  integration-tests:
-    name: Unit tests on Windows
+  integration-tests-linux:
+    name: Integration tests
     needs: build
     runs-on: ubuntu-latest
     env:
@@ -102,12 +109,6 @@ jobs:
           - os: ubuntu-latest
             dotnet: '5.0.x'
             dir: 'linux-net50'
-          - os: windows-latest
-            dotnet: '3.1.x'
-            dir: 'windows-netcore31'
-          - os: windows-latest
-            dotnet: '5.0.x'
-            dir: 'windows-net50'
     steps:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
@@ -117,5 +118,18 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ${{ matrix.dir }}
+      - name: Download ksqlDB docker files
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-compose
+      - name: Start ksqlDB in docker
+        run: docker-compose up -d --scale additional-ksqldb-server=0
+      - name: Wait until ksqlDB is up and running
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: 'http://localhost:8088/'
+          responseCode: 200
+          timeout: 150000
+          interval: 500
       - name: Run test
         run: dotnet test KsqlDb.Client.IntegrationTests.dll
