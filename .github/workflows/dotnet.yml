@@ -131,7 +131,7 @@ jobs:
         with:
           url: 'http://localhost:8088/'
           responseCode: 200
-          timeout: 150000
+          timeout: 300000
           interval: 500
       - name: Run test
         run: dotnet test KsqlDb.Client.IntegrationTests.dll
