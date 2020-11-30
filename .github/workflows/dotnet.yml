@@ -1,4 +1,4 @@
-name: .NET
+name: Build
 
 on:
   push:
@@ -8,23 +8,123 @@ on:
 
 jobs:
   build:
+    name: Build
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+      - name: Publish .NET 5.0 Windows
+        run: dotnet publish -o publish/windows-net50 -r win10-x64 -f net5.0 --configuration Release --no-restore --verbosity normal
+      - name: Publish .NET Core 3.1 Windows
+        run: dotnet publish -o publish/windows-netcore31 -r win10-x64 -f netcoreapp3.1 --configuration Release --no-restore --verbosity normal
+      - name: Publish .NET 5.0 Linux
+        run: dotnet publish -o publish/linux-net50 -r linux-x64 -f net5.0 --configuration Release --no-restore --verbosity normal
+      - name: Publish .NET Core 3.1 Linux
+        run: dotnet publish -o publish/linux-netcore31 -r linux-x64 -f netcoreapp3.1 --configuration Release --no-restore --verbosity normal
+      - name: Upload .NET 5.0 Windows binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-net50
+          path: publish/windows-net50/
+      - name: Upload .NET Core 3.1 Windows binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-netcore31
+          path: publish/windows-netcore31/
+      - name: Upload .NET 5.0 Linux binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-net50
+          path: publish/linux-net50/
+      - name: Upload .NET Core 3.1 Linux binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-netcore31
+          path: publish/linux-netcore31/
+      - name: Upload ksqlDB docker files
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-compose
+          path: |
+            test/docker-compose.yml
+            test/.env
 
+  unit-tests:
+    name: Unit tests
+    needs: build
     runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        dotnet: [ '3.1.x', '5.0.x' ]
-    name: Dotnet ${{ matrix.dotnet }} build
-
+        include:
+          - os: ubuntu-latest
+            dotnet: '3.1.x'
+            dir: 'linux-netcore31'
+          - os: ubuntu-latest
+            dotnet: '5.0.x'
+            dir: 'linux-net50'
+          - os: windows-latest
+            dotnet: '3.1.x'
+            dir: 'windows-netcore31'
+          - os: windows-latest
+            dotnet: '5.0.x'
+            dir: 'windows-net50'
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: ${{ matrix.dotnet }}
-    - name: Install dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+      - name: Download binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.dir }}
+      - name: Run test
+        run: dotnet test KsqlDb.Client.UnitTests.dll
+
+  integration-tests-linux:
+    name: Integration tests
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            dotnet: '3.1.x'
+            dir: 'linux-netcore31'
+          - os: ubuntu-latest
+            dotnet: '5.0.x'
+            dir: 'linux-net50'
+    steps:
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+      - name: Download binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.dir }}
+      - name: Download ksqlDB docker files
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-compose
+      - name: Start ksqlDB in docker
+        run: docker-compose up -d --scale additional-ksqldb-server=0
+      - name: Wait until ksqlDB is up and running
+        run: timeout 2m bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://127.0.0.1:8088/info)" != "200" ]]; do sleep 5; done' || false
+      - name: Run test
+        run: dotnet test KsqlDb.Client.IntegrationTests.dll

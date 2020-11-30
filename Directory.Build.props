@@ -1,0 +1,14 @@
+﻿<Project>
+  <PropertyGroup>
+    <Authors>alex.basiuk@outlook.com</Authors>
+    <Copyright>© Alex Basiuk</Copyright>
+    <Product>KsqlDb.Client</Product>
+    <Description>ksqlDB Client.</Description>
+    <RepositoryUrl>https://github.com/alex-basiuk/ksqlDB-client-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>README.md</PackageProjectUrl>
+    <Platforms>AnyCPU</Platforms>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>
