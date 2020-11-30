@@ -124,18 +124,7 @@ jobs:
           name: docker-compose
       - name: Start ksqlDB in docker
         run: docker-compose up -d --scale additional-ksqldb-server=0
-      - name: Sleep for 60 seconds
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '60s'
-      - name: Curl
-        run: curl -i http://127.0.0.1:8088/info
       - name: Wait until ksqlDB is up and running
-        uses: nev7n/wait_for_response@v1
-        with:
-          url: 'http://127.0.0.1:8088/info'
-          responseCode: 200
-          timeout: 300000
-          interval: 500
+        run: timeout 2m bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://127.0.0.1:8088/info)" != "200" ]]; do sleep 5; done' || false
       - name: Run test
         run: dotnet test KsqlDb.Client.IntegrationTests.dll
