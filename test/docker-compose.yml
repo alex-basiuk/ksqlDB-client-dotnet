@@ -5,6 +5,7 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 32181
       ZOOKEEPER_TICK_TIME: 2000
+    restart: always
 
   kafka:
     image: confluentinc/cp-enterprise-kafka:${CP_VERSION}
@@ -22,6 +23,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+    restart: always
 
   schema-registry:
     image: confluentinc/cp-schema-registry:${CP_VERSION}
@@ -31,6 +33,7 @@ services:
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:32181
+    restart: always
 
   primary-ksqldb-server:
     image: ${KSQL_IMAGE_BASE}confluentinc/ksqldb-server:${KSQL_VERSION}
@@ -47,18 +50,7 @@ services:
       KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
-
-  additional-ksqldb-server:
-    image: ${KSQL_IMAGE_BASE}confluentinc/ksqldb-server:${KSQL_VERSION}
-    hostname: additional-ksqldb-server
-    depends_on:
-      - primary-ksqldb-server
-    ports:
-      - "8090"
-    environment:
-      KSQL_LISTENERS: http://0.0.0.0:8090
-      KSQL_BOOTSTRAP_SERVERS: kafka:9092
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+    restart: always
 
   ksql-datagen:
     image: confluentinc/ksqldb-examples:${CP_VERSION}
@@ -72,13 +64,38 @@ services:
                        cub kafka-ready -b kafka:9092 1 40 && \
                        echo Waiting for Confluent Schema Registry to be ready... && \
                        cub sr-ready schema-registry 8081 40 && \
+                       echo Waiting for ksqlDB to be ready... && \
+                       cub ksql-server-ready primary-ksqldb-server 8088 40 && \
                        echo Waiting a few seconds for topic creation to finish... && \
                        sleep 11 && \
-                       ksql-datagen quickstart=orders topic=orders_topic bootstrap-server=kafka:9092 && \
+                       ksql-datagen quickstart=orders topic=orders_topic format=avro msgRate=1 bootstrap-server=kafka:9092 & \
+                       ksql-datagen quickstart=users_ topic=users_topic format=json msgRate=1 bootstrap-server=kafka:9092 & \
                        tail -f /dev/null'"
     environment:
       KSQL_CONFIG_DIR: "/etc/ksql"
       STREAMS_BOOTSTRAP_SERVERS: kafka:9092
       STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
       STREAMS_SCHEMA_REGISTRY_PORT: 8081
+    restart: always
 
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:${CP_VERSION}
+    hostname: control-center
+    container_name: control-center
+    depends_on:
+      - kafka
+      - schema-registry
+      - primary-ksqldb-server
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka:9092'
+      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://primary-ksqldb-server:8088"
+      CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://primary-ksqldb-server:8088"
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      PORT: 9021
+    restart: always

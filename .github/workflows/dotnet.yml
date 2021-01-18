@@ -123,7 +123,7 @@ jobs:
         with:
           name: docker-compose
       - name: Start ksqlDB in docker
-        run: docker-compose up -d --scale additional-ksqldb-server=0
+        run: docker-compose up -d
       - name: Wait until ksqlDB is up and running
         run: timeout 2m bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://127.0.0.1:8088/info)" != "200" ]]; do sleep 5; done' || false
       - name: Run test

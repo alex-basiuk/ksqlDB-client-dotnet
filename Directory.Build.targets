@@ -3,6 +3,8 @@
 <Project>
   <ItemGroup>
 
+    <PackageReference Update="System.Linq.Async" Version="[5.0.0,6.0.0)" />
+
     <!-- Testing/Samples-->
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.7.1"/>
     <PackageReference Update="xunit" Version="2.4.1"/>
