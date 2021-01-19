@@ -1,5 +1,5 @@
 $ksq_endpoint="http://localhost:8088/ksql"
-$create_stream_sql="CREATE STREAM orders_stream (itemid VARCHAR, price DOUBLE, location STRUCT<city VARCHAR, state VARCHAR, zipcode INT>, timestamp VARCHAR) WITH (KAFKA_TOPIC='orders_topic', VALUE_FORMAT='JSON');"
+$create_stream_sql="CREATE STREAM orders_stream (ordertime BIGINT, orderid INT, itemid VARCHAR, orderunits DOUBLE, address STRUCT<city VARCHAR, state VARCHAR, zipcode BIGINT>) WITH (KAFKA_TOPIC='orders_topic', VALUE_FORMAT='JSON');"
 $create_table_sql="CREATE TABLE users_table (registertime BIGINT, gender VARCHAR, regionid VARCHAR, userid VARCHAR PRIMARY KEY, interests ARRAY<STRING>, contactInfo MAP<STRING, STRING>) WITH (kafka_topic='users_topic', value_format='JSON');"
 
 $create_stream_body = @{
