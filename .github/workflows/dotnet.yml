@@ -129,10 +129,10 @@ jobs:
       - name: Create orders stream
         uses: wei/curl@v1
         with:
-          args: -X POST http://127.0.0.1:8088/ksql -H Accept:\ application/vnd.ksql.v1+json -d { "ksql":\ "CREATE STREAM orders_stream (ordertime BIGINT, orderid INT, itemid VARCHAR, orderunits DOUBLE, address STRUCT<city VARCHAR, state VARCHAR, zipcode BIGINT>) WITH (KAFKA_TOPIC='orders_topic', VALUE_FORMAT='JSON');", "streamsProperties":\ {}}
+          args: -X POST http://127.0.0.1:8088/ksql -H "Accept:\ application/vnd.ksql.v1+json" -d "{ \"ksql\":\ \"CREATE STREAM orders_stream (ordertime BIGINT, orderid INT, itemid VARCHAR, orderunits DOUBLE, address STRUCT<city VARCHAR, state VARCHAR, zipcode BIGINT>) WITH (KAFKA_TOPIC='orders_topic', VALUE_FORMAT='JSON');\",\"streamsProperties\":\ {}}"
       - name: Create users table
         uses: wei/curl@v1
         with:
-          args: -X POST http://127.0.0.1:8088/ksql -H Accept:\ application/vnd.ksql.v1+json -d { "ksql":\ "CREATE TABLE users_table (registertime BIGINT, gender VARCHAR, regionid VARCHAR, userid VARCHAR PRIMARY KEY, interests ARRAY<STRING>, contactInfo MAP<STRING, STRING>) WITH (kafka_topic='users_topic', value_format='JSON');", "streamsProperties":\ {}}
+          args: -X POST http://127.0.0.1:8088/ksql -H "Accept:\ application/vnd.ksql.v1+json" -d "{ \"ksql\":\ \"CREATE TABLE users_table (registertime BIGINT, gender VARCHAR, regionid VARCHAR, userid VARCHAR PRIMARY KEY, interests ARRAY<STRING>, contactInfo MAP<STRING, STRING>) WITH (kafka_topic='users_topic', value_format='JSON');\",\"streamsProperties\":\ {}}"
       - name: Run test
         run: dotnet test KsqlDb.Client.IntegrationTests.dll
