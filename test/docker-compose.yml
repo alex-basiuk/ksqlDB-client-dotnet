@@ -95,3 +95,10 @@ services:
       STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
       STREAMS_SCHEMA_REGISTRY_PORT: 8081
     restart: always
+
+  create-test-streams:
+    build: CreateTestStreams
+    depends_on:
+      - ksql-datagen-orders
+      - ksql-datagen-users
+    restart: always
