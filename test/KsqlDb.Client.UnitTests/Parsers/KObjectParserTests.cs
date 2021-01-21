@@ -22,6 +22,7 @@ namespace KsqlDb.Client.UnitTests.Parsers
         [InlineData("MAP<STRING, INTEGER>")]
         [InlineData("ARRAY<MAP<STRING, ARRAY<DECIMAL>>>")]
         [InlineData("STRUCT<ID BIGINT, NAMES ARRAY<STRING>, AGE INT>")]
+        [InlineData("STRUCT<`CITY` STRING, `STATE` STRING, `ZIPCODE` BIGINT>")]
         public void Creates_A_Parser_For_A_Known_Type(string type)
         {
             var target = KObjectParser.Create(type);
@@ -206,10 +207,33 @@ namespace KsqlDb.Client.UnitTests.Parsers
             AssertMap(map, actualMap);
         }
 
+        [Fact]
+        public void Parses_A_Struct_And_Returns_An_Instance_Of_KSqlObject()
+        {
+            // Arrange
+            var @struct = new Dictionary<string, object> { ["CITY"] = "Sevenoaks", ["STATE"] = "Kent", ["ZIPCODE"] = 90021L };
+            var jsonElement = Deserialize(JsonSerializer.Serialize(@struct));
+            var target = KObjectParser.Create("STRUCT<`CITY` STRING, `STATE` STRING, `ZIPCODE` BIGINT>");
+
+            // Act
+            var actual = target.Parse(jsonElement);
+
+            // Assert
+            Assert.IsType<KSqlObject>(actual);
+            if (actual is not KSqlObject actualStruct) return;
+            AssertStruct(@struct, actualStruct);
+        }
+
         private static void AssertMap(Dictionary<string, int> expected, KSqlObject actual)
         {
             Assert.Equal(expected.Keys, actual.FieldNames);
             Assert.All(actual.FieldNames, key => Assert.Equal(expected[key], actual.TryGetInteger(key)));
+        }
+
+        private static void AssertStruct(Dictionary<string, object> expected, KSqlObject actual)
+        {
+            Assert.Equal(expected.Keys, actual.FieldNames);
+            Assert.All(actual.FieldNames, key => Assert.Equal(expected[key], actual[key]));
         }
 
         private static JsonElement Deserialize(string json) => (JsonElement)JsonSerializer.Deserialize<object>(json);

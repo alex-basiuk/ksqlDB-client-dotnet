@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using KsqlDb.Api.Client.Abstractions.Objects;
+using KsqlDb.Api.Client.Exceptions;
 // ReSharper disable HeapView.BoxingAllocation
 
 namespace KsqlDb.Api.Client.Parsers
@@ -27,8 +29,7 @@ namespace KsqlDb.Api.Client.Parsers
             if (primaryType.Equals("DECIMAL", StringComparison.OrdinalIgnoreCase)) return new KObjectParser(ParseDecimal, typeof(decimal));
             if (primaryType.Equals("ARRAY", StringComparison.OrdinalIgnoreCase)) return new KObjectParser(j => ParseArray(j, type), typeof(KSqlArray));
             if (primaryType.Equals("MAP", StringComparison.OrdinalIgnoreCase)) return new KObjectParser(j => ParseMap(j, type), typeof(KSqlObject));
-            //TODO Add support of STRUCT
-            //if (primaryType.Equals("STRUCT", StringComparison.OrdinalIgnoreCase)) return new StructKObjectParser();
+            if (primaryType.Equals("STRUCT", StringComparison.OrdinalIgnoreCase)) return new KObjectParser(j => ParseStruct(j, type), typeof(KSqlObject));
             throw new NotSupportedException($"The {type} type is not supported.");
         }
 
@@ -94,6 +95,41 @@ namespace KsqlDb.Api.Client.Parsers
             {
                 var item = valueParser.Parse(jsonProperty.Value);
                 kSqlObject.AddValue(jsonProperty.Name, item);
+            }
+
+            return kSqlObject;
+        }
+
+        private static object ParseStruct(JsonElement jsonElement, ReadOnlySpan<char> fullTypeName)
+        {
+            if (jsonElement.ValueKind != JsonValueKind.Object) return KSqlNull.Instance;
+            var fieldDefinitions = fullTypeName.Slice(7, fullTypeName.Length - 8).Trim();
+            var fieldValueParsers = new Dictionary<string, KObjectParser>();
+            int fieldSeparatorIndex;
+            do
+            {
+                fieldSeparatorIndex = fieldDefinitions.IndexOf(',');
+                var fieldDefinition = fieldSeparatorIndex >= 0 ? fieldDefinitions.Slice(0, fieldSeparatorIndex) : fieldDefinitions;
+                int nameAndTypeSeparatorIndex = fieldDefinition.IndexOf(' ');
+                var name = fieldDefinition.Slice(0, nameAndTypeSeparatorIndex).Trim("` ");
+                var type = fieldDefinition.Slice(nameAndTypeSeparatorIndex + 1, fieldDefinition.Length - nameAndTypeSeparatorIndex - 1).Trim();
+                fieldValueParsers.Add(name.ToString(), Create(type.ToString()));
+                fieldDefinitions = fieldDefinitions.Slice(fieldSeparatorIndex + 1, fieldDefinitions.Length - fieldSeparatorIndex - 1).Trim();
+            } while (fieldSeparatorIndex >= 0);
+
+            var kSqlObject = new KSqlObject();
+            foreach (var jsonProperty in jsonElement.EnumerateObject())
+            {
+                if (fieldValueParsers.TryGetValue(jsonProperty.Name, out var valueParser))
+                {
+                    var value = valueParser.Parse(jsonProperty.Value);
+                    kSqlObject.AddValue(jsonProperty.Name, value);
+                }
+                else
+                {
+                    string supportedFields = string.Join(",", fieldValueParsers.Keys);
+                    throw new KsqlDbException($"Unable to parse unexpected struct field {jsonProperty.Name}. Expected fields: {supportedFields}");
+                }
             }
 
             return kSqlObject;
