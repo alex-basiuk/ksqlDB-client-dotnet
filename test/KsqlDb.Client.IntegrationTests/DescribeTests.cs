@@ -4,6 +4,7 @@ using Xunit;
 
 namespace KsqlDb.Client.IntegrationTests
 {
+/*
     public class DescribeTests : IClassFixture<DescribeTests.SourceDescriptionsFixture>
     {
         private readonly SourceDescriptionsFixture _fixture;
@@ -18,12 +19,12 @@ namespace KsqlDb.Client.IntegrationTests
             Assert.Contains($"DESCRIBE {entity}",_fixture.OrdersStreamDescription.SqlStatement);
         }
 
-        /*[Theory]
+        [Theory]
 
         public void Orders_Stream_Contains_ExpectedFields()
         {
 
-        }*/
+        }
 
         public sealed class SourceDescriptionsFixture : IDisposable
         {
@@ -41,4 +42,5 @@ namespace KsqlDb.Client.IntegrationTests
             }
         }
     }
+*/
 }
