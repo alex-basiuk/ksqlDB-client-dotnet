@@ -129,11 +129,3 @@ jobs:
         run: timeout 2m bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://127.0.0.1:8088/info)" != "200" ]]; do sleep 5; done' || false
       - name: Run test
         run: dotnet test KsqlDb.Client.IntegrationTests.dll
-      - name: Start SSH session
-        uses: luchihoratiu/debug-via-ssh@main
-        with:
-          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-          SSH_PASS: ${{ secrets.SSH_PASS }}
-      - name: Don't kill instace
-        if: ${{ failure() }}
-        run: sleep 1h # Prevent to killing instance after failure
