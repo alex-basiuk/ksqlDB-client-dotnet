@@ -1,6 +1,6 @@
 ﻿<Project>
   <PropertyGroup>
-    <Authors>alex.basiuk@outlook.com</Authors>
+    <Authors>Alex Basiuk</Authors>
     <Copyright>© Alex Basiuk</Copyright>
     <Product>KsqlDb.Client</Product>
     <Description>ksqlDB Client.</Description>

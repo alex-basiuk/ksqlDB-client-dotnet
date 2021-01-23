@@ -58,6 +58,7 @@ jobs:
           path: |
             test/docker-compose.yml
             test/.env
+            test/CreateTestStreams
 
   unit-tests:
     name: Unit tests
@@ -123,8 +124,10 @@ jobs:
         with:
           name: docker-compose
       - name: Start ksqlDB in docker
-        run: docker-compose up -d --scale additional-ksqldb-server=0
+        run: docker-compose up -d --build
       - name: Wait until ksqlDB is up and running
         run: timeout 2m bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://127.0.0.1:8088/info)" != "200" ]]; do sleep 5; done' || false
       - name: Run test
         run: dotnet test KsqlDb.Client.IntegrationTests.dll
+        env:
+          DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT: 1
