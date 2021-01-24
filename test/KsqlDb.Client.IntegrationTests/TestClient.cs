@@ -17,9 +17,11 @@ namespace KsqlDb.Client.IntegrationTests
             public const string OrdersStreamName = "ORDERS_STREAM";
             public const string UsersTopicName = "users_topic";
             public const string UsersTableName = "USERS_TABLE";
-        }
 
-        public static KsqlDb.Api.Client.Client Instance => new TestClient();
+        }
+        public static HttpClient RawHttpClient => new() {BaseAddress = new Uri("http://127.0.0.1:8088")};
+
+        public static  KsqlDb.Api.Client.Client Instance => new TestClient();
 
         private TestClient() : base(CreateHttpClient())
         {
@@ -27,9 +29,8 @@ namespace KsqlDb.Client.IntegrationTests
 
         private static KSqlDbHttpClient CreateHttpClient()
         {
-            var httpClient = new HttpClient {BaseAddress = new Uri("http://127.0.0.1:8088")};
             var jsonSerializer = new JsonSerializer();
-            return new KSqlDbHttpClient(httpClient, new KsqlV1RequestHttpContentFactory(jsonSerializer), jsonSerializer);
+            return new KSqlDbHttpClient(RawHttpClient, new KsqlV1RequestHttpContentFactory(jsonSerializer), jsonSerializer);
         }
 
         public TestClient(ITestOutputHelper output) : base(CreateHttpClientWithLogging(output))

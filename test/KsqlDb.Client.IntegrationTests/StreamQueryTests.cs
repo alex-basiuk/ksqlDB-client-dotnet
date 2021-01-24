@@ -116,17 +116,10 @@ namespace KsqlDb.Client.IntegrationTests
             public async Task InitializeAsync()
             {
                 var properties = new Dictionary<string, object> { ["ksql.streams.auto.offset.reset"] = "earliest" };
-                try
-                {
-                    var queryResult = await TestClient.Instance.StreamQuery($"SELECT * FROM {TestClient.KnownEntities.UsersTableName} EMIT CHANGES LIMIT {ExpectedRowsCount};", properties);
-                    Columns = queryResult.Columns;
-                    QueryId = queryResult.QueryId;
-                    Rows = await queryResult.Rows.ToArrayAsync();
-                }
-                catch (KsqlDbException e)
-                {
-                    throw new Exception($"Error code: {e.Body?.ErrorCode ?? -1}, Error message: {e.Body?.Message ?? ""}", e);
-                }
+                var queryResult = await TestClient.Instance.StreamQuery($"SELECT * FROM {TestClient.KnownEntities.UsersTableName} EMIT CHANGES LIMIT {ExpectedRowsCount};", properties);
+                Columns = queryResult.Columns;
+                QueryId = queryResult.QueryId;
+                Rows = await queryResult.Rows.ToArrayAsync();
             }
 
             public Task DisposeAsync() => Task.CompletedTask;
