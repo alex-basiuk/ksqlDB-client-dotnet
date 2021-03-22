@@ -94,7 +94,7 @@ jobs:
         run: dotnet test KsqlDb.Client.UnitTests.dll
 
   integration-tests-linux:
-    name: Integration tests
+    name: Integration tests on Linux
     needs: build
     runs-on: ubuntu-latest
     env:
@@ -128,3 +128,16 @@ jobs:
         run: timeout 2m bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://127.0.0.1:8088/info)" != "200" ]]; do sleep 5; done' || false
       - name: Run test
         run: dotnet test KsqlDb.Client.IntegrationTests.dll
+
+  # Hopefully, it will be possible to run it without Azure Pipelines in near future. 
+  integration-tests-windows:
+    name: Integration tests on Windows
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Azure Pipelines
+        uses: Azure/pipelines@v1
+        with:
+          azure-devops-project-url: 'https://dev.azure.com/alexbasiuk/KsqlDb.Client'
+          azure-pipeline-name: 'alex-basiuk.ksqlDB-client-dotnet'
+          azure-devops-token: '${{ secrets.AZURE_DEVOPS_TOKEN }}'

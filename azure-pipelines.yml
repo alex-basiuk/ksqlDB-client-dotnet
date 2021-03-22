@@ -1,0 +1,23 @@
+# The pipeline is triggered by GitHub Actions
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Install .NET 5.0'
+  inputs:
+    version: 5.0.x
+    performMultiLevelLookup: true
+    includePreviewVersions: false
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet build Release'
+  inputs:
+    command: 'build'
+    arguments: '--configuration Release'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: 'test/KsqlDb.Client.IntegrationTests/KsqlDb.Client.IntegrationTests.csproj'
+    arguments: '--configuration Release'
